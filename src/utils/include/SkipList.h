@@ -3,15 +3,18 @@ namespace SG {
 
 namespace Core {
 
-using uint64 = unsigned long long;
+using SSIZE_T = unsigned long long;
 
-template <typename TK, typename TV, uint64>
+/*
+
+
+*/
+template <typename TK, typename TV>
 class SkipList {
 public:
     SkipList();
     ~SkipList();
     void search(SSIZE_T docId);
-    void insert()
 };
 } // namespace Core
 
