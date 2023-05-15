@@ -1,0 +1,18 @@
+[submodule "3rdparty/cppjieba"]
+	path = 3rdparty/cppjieba
+	url = https://github.com/yanyiwu/cppjieba.git
+[submodule "3rdparty/doctest"]
+	path = 3rdparty/doctest
+	url = https://github.com/doctest/doctest
+[submodule "3rdparty/drogon"]
+	path = 3rdparty/drogon
+	url = https://github.com/drogonframework/drogon.git
+[submodule "3rdparty/indicators"]
+	path = 3rdparty/indicators
+	url = https://github.com/p-ranav/indicators.git
+[submodule "3rdparty/jsoncpp"]
+	path = 3rdparty/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git
+[submodule "3rdparty/spdlog"]
+	path = 3rdparty/spdlog
+	url = https://github.com/gabime/spdlog.git
