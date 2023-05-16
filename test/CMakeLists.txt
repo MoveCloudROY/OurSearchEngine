@@ -16,8 +16,13 @@ target_link_libraries(test_jsonbuilder PUBLIC
     query
 )
 
+add_executable(test_skiplist test_skiplist.cpp)
+target_link_libraries(test_skiplist PUBLIC
+    utils
+)
+
 if(UNIX)
-    target_compile_options(test_server PRIVATE -fno-omit-frame-pointer)
-    target_compile_options(test_server PRIVATE -fsanitize=address)
-    target_link_options(test_server PRIVATE -fsanitize=address)
+    target_compile_options(test_skiplist PRIVATE -fno-omit-frame-pointer)
+    target_compile_options(test_skiplist PRIVATE -fsanitize=address)
+    target_link_options(test_skiplist PRIVATE -fsanitize=address)
 endif(UNIX)
