@@ -38,32 +38,28 @@ struct Doc {
 };
 
 
-
 int main() {
     // 0 2 4 6 8 10 12 14
     SkipList<std::string, Doc> l1;
     for (int i = 0; i <= 15; i = i + 2) {
-        std::cout << "#" << std::endl;
-        l1.emplace_insert(i, distr(gen));
+        l1.insert({i, distr(gen)});
     }
     l1.print();
-    // auto ans1 = l1.dump(Doc::toJson).toStyledString();
-
-    // spdlog::info("\n{}", ans1);
-
+    std::cout << "===================\n";
     // // 1 4 7 10 13 16 19
     // SkipList<std::string, Doc> l2;
     // for (int i = 1; i <= 20; i = i + 3) {
     //     l2.emplace_insert(i, distr(gen));
     // }
-    // // l2.dump();
-
+    // l2.print();
+    // std::cout << "===================\n";
     // // 4 10 16 22 28
     // SkipList<std::string, Doc> l3;
     // for (int i = 4; i <= 30; i = i + 6) {
     //     l3.emplace_insert(i, distr(gen));
     // }
-    // // l3.dump();
+    // l3.print();
+    // std::cout << "===================\n";
     // std::vector<SkipList<std::string, Doc>*> p;
     // p.push_back(&l1);
     // p.push_back(&l2);

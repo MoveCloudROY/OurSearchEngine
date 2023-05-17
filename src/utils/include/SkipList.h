@@ -10,7 +10,6 @@
 #include <json/json.h>
 
 #include <iostream>
-#include <spdlog/spdlog.h>
 
 
 namespace SG {
@@ -48,15 +47,14 @@ class SkipList {
 
 public:
     SkipList()
-        : m_height{0}, m_cnt{0}, m_rd{}, m_gen{m_rd()}, m_distr{1, 3} {
+        : m_maxLevel{1}, m_levels{0}, m_length{0}, m_gen{std::random_device{}()}, m_distr{} {
 
-        head = new Node{nullptr, nullptr, nullptr, nullptr, 0, nullptr};
+        head = new Node{nullptr, nullptr, nullptr, nullptr, 0, TV{}};
         createNewLevel(1);
+        bottom = head->down;
     }
     ~SkipList() {
-        auto p = head;
-        while (p->down)
-            p = p->down;
+        auto p = bottom;
 
         while (p) {
             auto tmp = p->right;
@@ -72,11 +70,11 @@ public:
     /*
         返回小于 value 的最大的 Node
     */
-    Node* search(const TV* value) {
+    Node* search(const TV& value) {
         auto p = head;
         while (p->down) {
             p = p->down;
-            while (p->right && *(p->right->value) < *value) {
+            while (p->right && p->right->value < value) {
                 p = p->right;
             }
         }
@@ -99,14 +97,13 @@ public:
                                     <<<<<<<<<<  
     */
 
-    void insert(const TV* value) {
+    void insert(const TV& value) {
         // 小于 value 的最大节点
         auto  p        = search(value);
         Node* posIndex = nullptr;
 
-        auto nodeLevel = getLevel();
+        auto nodeLevel = getRandomLevel();
         createNewLevel(nodeLevel);
-
         for (int i = 0; i < nodeLevel; ++i) {
             // 最底层时
             if (posIndex != nullptr) {
@@ -117,92 +114,70 @@ public:
             posIndex = insertNode(p, posIndex, value, nodeLevel);
             p        = posIndex;
         }
-
-        ++m_cnt;
+        ++m_length;
+        expandLevel();
     }
 
     template <typename... Args>
     void emplace_insert(Args&&... args) {
-        TV* value = new TV{std::forward<Args>(args)...};
-        insert(value);
+        insert(TV{std::forward<Args>(args)...});
     }
 
     Json::Value dump(std::function<Json::Value(const TV& v)> func) {
         Json::Value sklRt;
-        sklRt["height"] = m_height;
-        sklRt["length"] = m_cnt;
-
         Json::Value nodes;
 
-        auto p = head;
-        while (p->down)
-            p = p->down;
-        p = p->right;
+        auto p = bottom;
+        p      = p->right;
 
         uint32_t cnt = 0;
         while (p) {
-            Json::Value node = func(*(p->value));
+            Json::Value node = func(p->value);
             node["rank"]     = ++cnt;
             node["level"]    = p->level;
             nodes.append(node);
             p = p->right;
         }
-        sklRt["data"] = nodes;
+        sklRt["data"]   = nodes;
+        sklRt["levels"] = m_maxLevel;
+        sklRt["length"] = m_length;
 
         return sklRt;
     }
 
     void read() {}
 
-    void print() {
-        for (int i = 0; i < m_height; ++i) {
+    void print() const {
+        for (int i = 0; i < m_maxLevel; ++i) {
             std::cout << "   ****   ";
         }
         std::cout << std::endl;
-        Node* p = head;
-        while (p->down)
-            p = p->down;
+        Node* p = bottom;
 
         while (p->right) {
             p      = p->right;
             auto r = p;
             while (r) {
-                std::cout << *(r->value) << ' ';
+                std::cout << r->value << ' ';
                 r = r->up;
             }
             std::cout << std::endl;
         }
-
-        // while (p->down) {
-        //     p      = p->down;
-        //     auto q = p;
-        //     std::cout << "* ->";
-        //     while (q->right) {
-        //         q = q->right;
-        //         std::cout << *(q->value) << ' ';
-        //     }
-        //     std::cout << std::endl;
-        // }
     }
-
-    // static std::vector<TV> combine(const std::vector<SkipList<TK, TV>*>&) {
-    // }
 
 private:
     void createNewLevel(uint32_t level) {
-        while (m_height < level) {
-            Node* tmp = new Node{nullptr, nullptr, head, head->down, 0, nullptr};
+        while (m_levels < level) {
+            Node* tmp = new Node{nullptr, nullptr, head, head->down, 0, TV{}};
             if (head->down)
                 head->down->up = tmp;
             head->down = tmp;
-            ++m_height;
+            ++m_levels;
         }
     }
 
-
-    Node* insertNode(Node* posLeft, Node* posDown, const TV* value, uint32_t level) {
+    Node* insertNode(Node* posLeft, Node* posDown, const TV& value, uint32_t level) {
         Node* tmp = new Node{posLeft, posLeft->right, nullptr, posDown, level, value};
-
         if (posLeft->right)
             posLeft->right->left = tmp;
         posLeft->right = tmp;
@@ -211,23 +186,34 @@ private:
 
         return tmp;
     }
-    uint32_t getLevel() {
-        return m_distr(m_gen);
+    void expandLevel() {
+        std::cout << m_maxLevel << ' ' << m_length << '\n';
+        if ((1 << m_maxLevel) < m_length)
+            m_maxLevel = static_cast<uint32_t>(1.6 * m_maxLevel + 0.5);
+    }
+
+    uint32_t getRandomLevel() {
+        uint32_t ret = 1;
+        while (m_distr(m_gen) < THRED && ret < m_maxLevel) {
+            ret++;
+        }
+        return ret;
     }
 
 private:
-    static constexpr unsigned int THRED = 20;
+    static constexpr double THRED = 0.5;
+
     struct Node {
-        Node *    left, *right, *up, *down;
-        uint32_t  level;
-        TV const* value;
+        Node *   left, *right, *up, *down;
+        uint32_t level;
+        TV       value;
     };
-    Node*                           head;
-    uint32_t                        m_height;
-    uint32_t                        m_cnt;
-    std::random_device              m_rd;
-    std::mt19937                    m_gen;
-    std::uniform_int_distribution<> m_distr;
+    uint32_t                         m_maxLevel;
+    Node *                           head, *bottom;
+    uint32_t                         m_levels;
+    uint32_t                         m_length;
+    std::mt19937                     m_gen;
+    std::uniform_real_distribution<> m_distr;
 };
 
 } // namespace Core
