@@ -38,9 +38,6 @@ AlignTrailingComments: true
 # 允许将所有参数放到下一行，即使BinPackArguments为false
 AllowAllArgumentsOnNextLine: true
  
-# 允许构造函数的初始化参数放在下一行
-AllowAllConstructorInitializersOnNextLine: true
- 
 # 允许函数声明的所有参数在放在下一行
 AllowAllParametersOfDeclarationOnNextLine: true
  
@@ -59,9 +56,6 @@ AllowShortIfStatementsOnASingleLine: false
  
 # 允许短的循环保持在同一行
 AllowShortLoopsOnASingleLine: false
- 
-# 总是在定义返回类型后换行(deprecated)
-AlwaysBreakAfterDefinitionReturnType: None
  
 # 总是在返回类型后换行: None, All, TopLevel(顶级函数，不包括在类中的函数), 
 #   AllDefinitions(所有的定义，不包括声明), TopLevelDefinitions(所有的顶级函数的定义)
@@ -129,11 +123,11 @@ BreakBeforeBraces: Custom
  
 # 三元运算操作符换行位置（?和: 在新行还是尾部）
 BreakBeforeTernaryOperators: true
- 
-# 在构造函数的初始化列表的逗号前换行
-BreakConstructorInitializersBeforeComma: false
- 
+
+PackConstructorInitializers: Never
+
 # 要使用的构造函数初始化式样式
+# Ref: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#breakconstructorinitializers
 BreakConstructorInitializers: BeforeComma
  
 # 每行字符的限制，0表示没有限制
@@ -144,9 +138,6 @@ ColumnLimit: 0
  
 # 如果为true，则连续的名称空间声明将在同一行上。如果为false，则在新行上声明每个名称空间。
 CompactNamespaces: false
- 
-# 构造函数的初始化列表要么都在同一行，要么都各自一行
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
  
 # 构造函数的初始化列表的缩进宽度
 ConstructorInitializerIndentWidth:  4
@@ -308,3 +299,24 @@ TabWidth: 4
  
 # 使用tab字符: Never, ForIndentation, ForContinuationAndIndentation, Always
 UseTab: Never
+
+
+# 对齐数组结构 
+# Ref: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#alignarrayofstructures
+AlignArrayOfStructures: Right
+
+# 指针/引用符号位置
+# Ref: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#pointeralignment
+PointerAlignment: Right
+
+# 引用符号位置，覆盖PointerAlignmentStyle
+# Ref: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#referencealignment
+ReferenceAlignment: Right
+
+# 对齐连续宏定义
+# Ref: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#alignconsecutivemacros
+AlignConsecutiveAssignments: AcrossComments
+
+# 宏对齐换行反斜杠
+# Ref: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#alignescapednewlines
+AlignEscapedNewlines: Left
