@@ -11,6 +11,11 @@ namespace SG {
 using SSIZE_T   = unsigned long long;
 using PartsInfo = std::map<std::string, SSIZE_T>;
 
+struct DivideResult {
+  PartsInfo words; //<word,frequency>
+  SSIZE_T totalFreq;
+};
+
 struct SearchReq {
     std::string content;
     SSIZE_T     begin;
