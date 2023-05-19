@@ -12,6 +12,7 @@ add_library(${PROJECT_NAME} ${PREPROCESS_SRC_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PREPROCESS_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
+    utils
     cppjieba
     spdlog
     indicators
