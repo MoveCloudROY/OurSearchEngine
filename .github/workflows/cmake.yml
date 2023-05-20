@@ -20,6 +20,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: env
+      # Set the Project Env Packages
+      run: sudo apt install libjsoncpp-dev uuid-dev zlib1g-dev openssl libssl-dev
+      
     - name: submodules
       # Get the 3rdparty
       run: git submodule update --init --recursive
