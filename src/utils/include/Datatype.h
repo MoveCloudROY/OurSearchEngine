@@ -12,8 +12,8 @@ using SSIZE_T   = unsigned long long;
 using PartsInfo = std::map<std::string, SSIZE_T>;
 
 struct DivideResult {
-  PartsInfo words; //<word,frequency>
-  SSIZE_T totalFreq;
+    PartsInfo words; //<word,frequency>
+    SSIZE_T   totalFreq;
 };
 
 struct SearchReq {
@@ -38,20 +38,20 @@ struct SearchResultItem {
 };
 
 struct SearchResult {
-    std::vector<std::string>       participles;
-    std::vector<SSIZE_T>           numbers;
-    std::vector<SearchResultItem*> results;
+    std::vector<std::string>        participles;
+    std::vector<SSIZE_T>            numbers;
+    std::vector<SearchResultItem *> results;
 };
 
 namespace Utils {
-static inline auto toUInt64(const std::string& s) -> SSIZE_T {
+static inline auto toUInt64(const std::string &s) -> SSIZE_T {
     std::stringstream ss{s};
     SSIZE_T           ret;
     ss >> ret;
     return ret;
 };
 
-static inline std::string JsonToString(const Json::Value& root) {
+static inline std::string JsonToString(const Json::Value &root) {
     std::ostringstream        stream;
     Json::StreamWriterBuilder stream_builder;
     stream_builder.settings_["emitUTF8"] = true; // !
