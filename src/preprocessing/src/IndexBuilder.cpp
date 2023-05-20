@@ -3,6 +3,8 @@
 #include "IndexBuilder.h"
 #include "XMLParser.hpp"
 #include <spdlog/spdlog.h>
+#include <indicators/progress_bar.hpp>
+#include <indicators/cursor_control.hpp>
 
 namespace SG {
 void IndexBuilder::load_offsets() {
@@ -29,13 +31,32 @@ void IndexBuilder::UpdateInvertedIndex(InvIndexList &InvertedIndex, DivideResult
 }
 
 void IndexBuilder::traverse_und_divide() {
+    spdlog::info("[IndexBuilder] Start to Divide Documents");
+
+    using namespace indicators;
+    ProgressBar bar{
+        option::BarWidth{50},
+        option::Start{"["},
+        option::Fill{"="},
+        option::Lead{">"},
+        option::Remainder{" "},
+        option::End{"]"},
+        option::ShowPercentage{true},
+        option::ShowElapsedTime{true},
+        option::ShowRemainingTime{true},
+        option::PostfixText{"Dividing Documents"},
+        option::ForegroundColor{Color::green},
+        option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}};
+    indicators::show_console_cursor(false);
+
     std::ifstream lib_file("../assets/library/docLibrary.lib");
     for (size_t index = 1; index <= offsets.size(); ++index) {
-        spdlog::info("Divide Doc {}", index);
+        bar.set_progress(index * 100.0 / offsets.size());
+
         int beg  = offsets[index].first;
         int size = offsets[index].second;
 
-        
+
         lib_file.seekg(beg); //设置文件指针位置
         //读取指定大小的数据
         std::string str(size, ' ');   //创建大小为size的字符串并填充空格字符
@@ -51,10 +72,14 @@ void IndexBuilder::traverse_und_divide() {
         UpdateInvertedIndex(InvertedIndex, result, index);
     }
     lib_file.close();
+
+    indicators::show_console_cursor(true);
+    spdlog::info("[IndexBuilder] Divide Documents Completely");
 }
 
 void IndexBuilder::outputIndex() {
-    std::cout << "Begin Write InvertedIndex into output.txt" << std::endl;
+    spdlog::info("[IndexBuilder] Start to Write InvertedIndex into output.txt");
+
     std::ofstream file("../assets/library/output.txt");
     if (file.is_open()) {
         // 遍历InvertedIndex并将数据写入文件
@@ -70,9 +95,9 @@ void IndexBuilder::outputIndex() {
         }
         // 关闭文件流
         file.close();
-        std::cout << "Data written to file successfully." << std::endl;
+        spdlog::info("[IndexBuilder] Write InvertedIndex successfully.");
     } else {
-        std::cout << "Failed to open the file." << std::endl;
+        spdlog::error("[IndexBuilder] Failed to open the file to Write InvertedIndex.");
     }
 }
 
