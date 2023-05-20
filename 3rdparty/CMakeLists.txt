@@ -40,6 +40,11 @@ set(ZLIB_LIB_NAME "zlib")
 add_subdirectory(${ZLIB_LIB_NAME})
 endif(WIN32)
 
+if(UNIX)
+set(JSONCPP_LIB_NAME "jsoncpp")
+add_subdirectory(${JSONCPP_LIB_NAME})
+endif(UNIX)
+
 set(DROGON_LIB_NAME "drogon")
 set(BUILD_TESTING OFF)
 add_subdirectory(${DROGON_LIB_NAME})
