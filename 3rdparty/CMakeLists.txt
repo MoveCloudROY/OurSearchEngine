@@ -48,6 +48,7 @@ add_subdirectory(${INDICATORS_LIB_NAME})
 find_package(jsoncpp REQUIRED)
 get_target_property(JSONCPP_INCLUDE_DIRS jsoncpp_lib INTERFACE_INCLUDE_DIRECTORIES)
 include_directories(${JSONCPP_INCLUDE_DIRS})
+message("-- JSONCPP_INCLUDE_DIRS: ${JSONCPP_INCLUDE_DIRS}")
 
 if (WIN32)
 set(CMAKE_SYSTEM_NAME Windows)
