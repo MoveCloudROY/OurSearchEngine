@@ -23,7 +23,7 @@ jobs:
     - name: env
       # Set the Project Env Packages
       run: |
-        sudo apt install libjsoncpp-dev uuid-dev zlib1g-dev openssl libssl-dev
+        sudo apt install libjsoncpp-dev uuid-dev zlib1g-dev openssl libssl-dev hwloc
         sudo ln -s /usr/include/jsoncpp/json/ /usr/include/json
       
     - name: submodules
