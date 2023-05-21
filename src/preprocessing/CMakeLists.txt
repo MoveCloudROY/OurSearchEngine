@@ -16,8 +16,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     cppjieba
     spdlog
     indicators
-)
-target_link_libraries(${PROJECT_NAME} PRIVATE
     tbb
 )
 
