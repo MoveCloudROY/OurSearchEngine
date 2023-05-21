@@ -1,10 +1,19 @@
-#include <fstream>
-#include <cmath>
 #include "IndexBuilder.h"
 #include "XMLParser.hpp"
+#include "oneapi/tbb/blocked_range.h"
+#include "oneapi/tbb/parallel_for.h"
+
+#include <cstddef>
+#include <fstream>
+#include <cmath>
+
+#include <oneapi/tbb/queuing_mutex.h>
+#include <oneapi/tbb/task_arena.h>
 #include <spdlog/spdlog.h>
 #include <indicators/progress_bar.hpp>
+#include <indicators/indeterminate_progress_bar.hpp>
 #include <indicators/cursor_control.hpp>
+#include <string>
 
 namespace SG {
 void IndexBuilder::load_offsets() {
@@ -21,6 +30,7 @@ void IndexBuilder::load_offsets() {
 }
 
 void IndexBuilder::UpdateInvertedIndex(InvIndexList &InvertedIndex, DivideResult &result, int docID) {
+    tbb::queuing_mutex::scoped_lock lock{m_mutex};
     for (const auto &pair : result.words) {
         if (InvertedIndex.find(pair.first) == InvertedIndex.end()) {
             InvertedIndex.insert({pair.first, std::map<int, double>{{docID, 1.0 * pair.second / result.totalFreq}}});
@@ -34,45 +44,44 @@ void IndexBuilder::traverse_und_divide() {
     spdlog::info("[IndexBuilder] Start to Divide Documents");
 
     using namespace indicators;
-    ProgressBar bar{
-        option::BarWidth{50},
-        option::Start{"["},
-        option::Fill{"="},
-        option::Lead{">"},
-        option::Remainder{" "},
-        option::End{"]"},
-        option::ShowPercentage{true},
-        option::ShowElapsedTime{true},
-        option::ShowRemainingTime{true},
-        option::PostfixText{"Dividing Documents"},
-        option::ForegroundColor{Color::green},
-        option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}};
+    IndeterminateProgressBar bar{
+        indicators::option::BarWidth{50},
+        indicators::option::Start{"["},
+        indicators::option::Fill{"·"},
+        indicators::option::Lead{"<==>"},
+        indicators::option::End{"]"},
+        indicators::option::PrefixText{"Dividing Documents"},
+        indicators::option::ForegroundColor{indicators::Color::yellow},
+        indicators::option::FontStyles{
+            std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
+
+    };
     indicators::show_console_cursor(false);
 
-    std::ifstream lib_file("../assets/library/docLibrary.lib");
-    for (size_t index = 1; index <= offsets.size(); ++index) {
-        bar.set_progress(index * 100.0 / offsets.size());
+    tbb::parallel_for(tbb::blocked_range<size_t>{1, offsets.size() + 1}, [&](tbb::blocked_range<size_t> r) {
+        std::ifstream lib_file("../assets/library/docLibrary.lib");
+        bar.tick();
+        for (size_t index = r.begin(); index < r.end(); ++index) {
+            int beg  = offsets[index].first;
+            int size = offsets[index].second;
 
-        int beg  = offsets[index].first;
-        int size = offsets[index].second;
+            lib_file.seekg(beg); //设置文件指针位置
+            //读取指定大小的数据
+            std::string str(size, ' ');   //创建大小为size的字符串并填充空格字符
+            lib_file.read(&str[0], size); //将数据读取到字符串中
+            //解析xml，读出content
+            XMLParser   xmlParser(str);
+            std::string content = xmlParser.parser("Content");
+            //开始分词
+            DivideResult result = divi.divide(content);
 
+            //更新倒排索引
+            UpdateInvertedIndex(InvertedIndex, result, index);
+        }
+        lib_file.close();
+    });
 
-        lib_file.seekg(beg); //设置文件指针位置
-        //读取指定大小的数据
-        std::string str(size, ' ');   //创建大小为size的字符串并填充空格字符
-        lib_file.read(&str[0], size); //将数据读取到字符串中
-        //解析xml，读出content
-        XMLParser   xmlParser(str);
-        std::string content = xmlParser.parser("Content");
-        //开始分词
-        DivideResult result = divi.divide(content);
-
-
-        //更新倒排索引
-        UpdateInvertedIndex(InvertedIndex, result, index);
-    }
-    lib_file.close();
-
+    bar.mark_as_completed();
     indicators::show_console_cursor(true);
     spdlog::info("[IndexBuilder] Divide Documents Completely");
 }

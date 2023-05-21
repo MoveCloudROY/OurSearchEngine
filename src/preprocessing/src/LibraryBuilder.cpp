@@ -25,7 +25,7 @@ void LibraryBuilder::scan_directory() {
         indicators::option::Fill{"·"},
         indicators::option::Lead{"<==>"},
         indicators::option::End{"]"},
-        indicators::option::PostfixText{"Scanning Files"},
+        indicators::option::PrefixText{"Scanning Files"},
         indicators::option::ForegroundColor{indicators::Color::yellow},
         indicators::option::FontStyles{
             std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
@@ -68,7 +68,7 @@ void LibraryBuilder::traverse_directory() {
         option::ShowPercentage{true},
         option::ShowElapsedTime{true},
         option::ShowRemainingTime{true},
-        option::PostfixText{"Traversing Directory"},
+        option::PrefixText{"Traversing Directory"},
         option::ForegroundColor{Color::green},
         option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}};
     indicators::show_console_cursor(false);
@@ -105,7 +105,6 @@ void LibraryBuilder::traverse_directory() {
     lib_file.close();
     offset_file.close();
 
-    // bar.mark_as_completed();
     indicators::show_console_cursor(true);
     spdlog::info("[LibraryBuilder] Traverse Directory Completely!");
 }

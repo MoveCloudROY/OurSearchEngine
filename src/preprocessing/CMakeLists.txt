@@ -17,4 +17,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog
     indicators
 )
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    tbb
+)
+
 
