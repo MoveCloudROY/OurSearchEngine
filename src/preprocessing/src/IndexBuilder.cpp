@@ -1,7 +1,7 @@
 #include "IndexBuilder.h"
 #include "XMLParser.hpp"
-#include "oneapi/tbb/blocked_range.h"
-#include "oneapi/tbb/parallel_for.h"
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 #include <cstddef>
 #include <fstream>

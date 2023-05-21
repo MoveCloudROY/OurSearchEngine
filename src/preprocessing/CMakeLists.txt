@@ -20,6 +20,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PRIVATE
     tbb
 )
-target_include_directories(${PROJECT_NAME} PRIVATE ${TBB_LIB_NAME}/include)
-
 

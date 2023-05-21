@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <tbb/tbb.h>
-#include <oneapi/tbb/queuing_mutex.h>
+#include <tbb/queuing_mutex.h>
 
 namespace SG {
 
