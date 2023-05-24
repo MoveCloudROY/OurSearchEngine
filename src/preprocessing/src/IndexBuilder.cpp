@@ -171,7 +171,7 @@ void IndexBuilder::dumpSkipList(const std::filesystem::path path) {
             }
             file << singleFile.toStyledString();
             file.close();
-            term = Json::Value{};
+            singleFile = Json::Value{};
         }
     }
     if (cnt % 400 != 0) {
