@@ -1,4 +1,5 @@
 #pragma once
+#include "spdlog/spdlog.h"
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -187,8 +188,8 @@ Typically:
         std::cout << "==================" << std::endl;
     }
 
-    static std::vector<TV> combine(std::vector<SkipList<TV> *> &v) {
-        std::vector<TV> ret;
+    static std::vector<std::vector<TV>> combine(std::vector<SkipList<TV> *> &v) {
+        std::vector<std::vector<TV>> ret;
         if (v.empty())
             return ret;
         std::size_t okCnt       = 0;
@@ -206,7 +207,12 @@ Typically:
                 okCnt++;
                 if (okCnt == v.size()) {
                     okCnt = 0;
-                    ret.emplace_back(currentNode->value);
+                    std::vector<TV> tmp;
+                    tmp.reserve(v.size());
+                    for (auto &&t : v) {
+                        tmp.emplace_back(t->search(currentNode->value)->right->value);
+                    }
+                    ret.emplace_back(tmp);
                     currentNode = bigOrEqualNode->right;
                 }
             } else {
