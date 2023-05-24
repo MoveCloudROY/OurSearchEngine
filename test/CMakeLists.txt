@@ -21,6 +21,12 @@ target_link_libraries(test_skiplist PUBLIC
     utils
 )
 
+
+add_executable(test_fst test_fst.cpp)
+target_link_libraries(test_fst PUBLIC
+    utils
+)
+
 if(UNIX)
     target_compile_options(test_skiplist PRIVATE -fno-omit-frame-pointer)
     target_compile_options(test_skiplist PRIVATE -fsanitize=address)

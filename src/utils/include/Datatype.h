@@ -8,18 +8,17 @@
 
 namespace SG {
 
-using SSIZE_T   = unsigned long long;
-using PartsInfo = std::map<std::string, SSIZE_T>;
+using PartsInfo = std::map<std::string, uint64_t>;
 
 struct DivideResult {
     PartsInfo words; //<word,frequency>
-    SSIZE_T   totalFreq;
+    uint64_t  totalFreq;
 };
 
 struct SearchReq {
     std::string content;
-    SSIZE_T     begin;
-    SSIZE_T     end;
+    uint64_t    begin;
+    uint64_t    end;
 };
 
 struct ItemInfo {
@@ -34,19 +33,48 @@ struct SearchResultItem {
     std::string                   url;
     ItemInfo                      info;
     std::map<std::string, double> correlation;
-    SSIZE_T                       same_domain_numbers;
+    uint64_t                      same_domain_numbers;
 };
 
 struct SearchResult {
     std::vector<std::string>        participles;
-    std::vector<SSIZE_T>            numbers;
+    std::vector<uint64_t>           numbers;
     std::vector<SearchResultItem *> results;
 };
 
+
+struct Doc {
+    std::size_t docId;
+    double      tf;
+
+    bool operator==(const Doc &t) const {
+        return docId == t.docId;
+    }
+    bool operator<(const Doc &t) const {
+        return docId < t.docId;
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Doc &t) {
+        os << '(' << t.docId << ' ' << t.tf << ')';
+        return os;
+    }
+
+    static Json::Value toJson(const Doc &t) {
+        Json::Value ret;
+        ret["docId"] = t.docId;
+        ret["tf"]    = t.tf;
+        return ret;
+    }
+    static Doc fromJson(const Json::Value &src) {
+        return {src["docId"].asUInt64(), src["tf"].asDouble()};
+    }
+};
+
+
 namespace Utils {
-static inline auto toUInt64(const std::string &s) -> SSIZE_T {
+static inline auto toUInt64(const std::string &s) -> uint64_t {
     std::stringstream ss{s};
-    SSIZE_T           ret;
+    uint64_t          ret;
     ss >> ret;
     return ret;
 };
