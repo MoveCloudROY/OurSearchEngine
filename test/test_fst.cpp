@@ -19,7 +19,7 @@ int main() {
 
     is.close();
 
-    fst::map<std::string> matcher(byte_code.data(), byte_code.size());
+    fst::map<uint64_t> matcher(byte_code.data(), byte_code.size());
     if (!matcher) {
         spdlog::error("[test_fst] Failed to create matcher");
         return 0;

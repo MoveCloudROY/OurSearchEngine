@@ -9,22 +9,22 @@ namespace SG {
 SearchResultBuilder::SearchResultBuilder() {
 }
 
-void SearchResultBuilder::addPartsInfo(const std::map<std::string, SSIZE_T>& parts) {
+void SearchResultBuilder::addPartsInfo(const std::map<std::string, uint64_t> &parts) {
     partsInfo = parts;
 }
 
-void SearchResultBuilder::addItem(SearchResultItem&& item) {
+void SearchResultBuilder::addItem(SearchResultItem &&item) {
     results.push_back(&item);
 }
 
 Json::Value SearchResultBuilder::build() {
     Json::Value ret;
     ret["数量"] = Json::Value{};
-    for (auto&& i : partsInfo) {
+    for (auto &&i : partsInfo) {
         ret["分词"].append(i.first);
         ret["数量"][i.first] = Json::Value(static_cast<unsigned int>(i.second));
     }
-    for (auto&& i : results) {
+    for (auto &&i : results) {
         Json::Value item;
         Json::Value itemInfo;
         itemInfo["分数"]         = i->score;
@@ -35,14 +35,13 @@ Json::Value SearchResultBuilder::build() {
         itemInfo["信息"]["标题"] = i->info.title;
         itemInfo["信息"]["描述"] = i->info.desc;
         itemInfo["信息"]["文本"] = i->info.text;
-        for (auto&& j : i->correlation) {
+        for (auto &&j : i->correlation) {
             itemInfo["相关性"][j.first] = j.second;
         }
         ret["结果"].append(itemInfo);
     }
     return ret;
 }
-
 
 
 } // namespace SG

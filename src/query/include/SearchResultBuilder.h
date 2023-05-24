@@ -8,13 +8,13 @@ namespace SG {
 class SearchResultBuilder {
 public:
     SearchResultBuilder();
-    void        addItem(SearchResultItem&& item);
-    void        addPartsInfo(const std::map<std::string, SSIZE_T>& parts);
+    void        addItem(SearchResultItem &&item);
+    void        addPartsInfo(const std::map<std::string, uint64_t> &parts);
     Json::Value build();
 
 private:
-    std::map<std::string, SSIZE_T> partsInfo;
-    std::vector<SearchResultItem*> results;
+    std::map<std::string, uint64_t> partsInfo;
+    std::vector<SearchResultItem *> results;
 };
 
 } // namespace SG
