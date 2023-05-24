@@ -43,12 +43,15 @@ int main() {
     auto ans = SkipList<SG::Doc>::combine(p);
 
     for (auto &&i : ans) {
-        std::cout << "(docid, tf) = " << i << '\n';
+        for (auto &&j : i) {
+            spdlog::info("(docid, tf) = ({}, {})", j.docId, j.tf);
+        }
+        spdlog::info("====================");
     }
 
-    spdlog::info("\n{}", l1.dump().toStyledString());
+    // spdlog::info("\n{}", l1.dump().toStyledString());
 
-    auto ls_json = l1.dump();
-    auto ls_copy = SkipList<SG::Doc>(ls_json);
-    spdlog::info("\n{}", ls_copy.dump().toStyledString());
+    // auto ls_json = l1.dump();
+    // auto ls_copy = SkipList<SG::Doc>(ls_json);
+    // spdlog::info("\n{}", ls_copy.dump().toStyledString());
 }
