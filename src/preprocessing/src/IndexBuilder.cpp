@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <fstream>
 #include <cmath>
+
 #include <string>
 #include <vector>
 
@@ -22,6 +23,7 @@
 #include <indicators/progress_bar.hpp>
 #include <indicators/indeterminate_progress_bar.hpp>
 #include <indicators/cursor_control.hpp>
+#include <string>
 
 
 namespace SG {
