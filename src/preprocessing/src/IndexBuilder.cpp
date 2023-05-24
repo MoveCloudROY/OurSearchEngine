@@ -161,7 +161,7 @@ void IndexBuilder::dumpSkipList(const std::filesystem::path path) {
         term["skl"] = skipList.dump();
         singleFile.append(term);
         if (cnt % 400 == 0) {
-            auto dumpPath = path / (std::to_string(cnt / 400) + ".lib");
+            auto dumpPath = path / (std::to_string(cnt / 400 - 1) + ".lib");
             spdlog::info("[IndexBuilder] Dump block {}-{} to {}", cnt - 400, cnt - 1, dumpPath.u8string());
             std::ofstream file(dumpPath);
             if (!file.is_open()) {
@@ -169,13 +169,15 @@ void IndexBuilder::dumpSkipList(const std::filesystem::path path) {
                 file.close();
                 return;
             }
-            file << singleFile.toStyledString();
+            Json::StreamWriterBuilder builder;
+            builder.settings_["emitUTF8"] = true;
+            file << Json::writeString(builder, singleFile);
             file.close();
             singleFile = Json::Value{};
         }
     }
     if (cnt % 400 != 0) {
-        auto dumpPath = path / (std::to_string(cnt / 400 + 1) + ".lib");
+        auto dumpPath = path / (std::to_string(cnt / 400) + ".lib");
         spdlog::info("[IndexBuilder] Dump block {}-{} to {}", cnt / 400 * 400, cnt - 1, dumpPath.u8string());
         std::ofstream file(dumpPath);
         if (!file.is_open()) {
@@ -183,7 +185,9 @@ void IndexBuilder::dumpSkipList(const std::filesystem::path path) {
             file.close();
             return;
         }
-        file << singleFile.toStyledString();
+        Json::StreamWriterBuilder builder;
+        builder.settings_["emitUTF8"] = true;
+        file << Json::writeString(builder, singleFile);
         file.close();
     }
 
