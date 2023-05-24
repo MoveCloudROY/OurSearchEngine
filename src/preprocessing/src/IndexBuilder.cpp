@@ -1,5 +1,8 @@
 #include "IndexBuilder.h"
 #include "XMLParser.hpp"
+#include "Fst.h"
+#include "oneapi/tbb/global_control.h"
+#include <ostream>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
@@ -14,6 +17,7 @@
 #include <indicators/indeterminate_progress_bar.hpp>
 #include <indicators/cursor_control.hpp>
 #include <string>
+#include <vector>
 
 namespace SG {
 void IndexBuilder::load_offsets() {
@@ -57,6 +61,9 @@ void IndexBuilder::traverse_und_divide() {
 
     };
     indicators::show_console_cursor(false);
+    constexpr size_t    MAX_THREADS = 16;
+    tbb::global_control c{tbb::global_control::max_allowed_parallelism, MAX_THREADS};
+    InvIndexList        tmp[MAX_THREADS];
 
     tbb::parallel_for(tbb::blocked_range<size_t>{1, offsets.size() + 1}, [&](tbb::blocked_range<size_t> r) {
         std::ifstream lib_file("../assets/library/docLibrary.lib");
@@ -76,10 +83,21 @@ void IndexBuilder::traverse_und_divide() {
             DivideResult result = divi.divide(content);
 
             //更新倒排索引
-            UpdateInvertedIndex(InvertedIndex, result, index);
+            for (const auto &pair : result.words) {
+                if (tmp[tbb::this_task_arena::current_thread_index()].find(pair.first) == tmp[tbb::this_task_arena::current_thread_index()].end()) {
+                    tmp[tbb::this_task_arena::current_thread_index()].insert({pair.first, std::map<int, double>{{index, 1.0 * pair.second / result.totalFreq}}});
+                } else {
+                    tmp[tbb::this_task_arena::current_thread_index()][pair.first].insert(std::make_pair(index, 1.0 * pair.second / result.totalFreq));
+                }
+            }
+
+            // UpdateInvertedIndex(InvertedIndex, result, index);
         }
         lib_file.close();
     });
+
+    for (int i = 0; i < MAX_THREADS; ++i)
+        InvertedIndex.insert(tmp[i].begin(), tmp[i].end());
 
     bar.mark_as_completed();
     indicators::show_console_cursor(true);
@@ -87,12 +105,38 @@ void IndexBuilder::traverse_und_divide() {
 }
 
 void IndexBuilder::outputIndex() {
-    spdlog::info("[IndexBuilder] Start to Write InvertedIndex into output.txt");
 
+    spdlog::info("[IndexBuilder] Start to Output Fst.lib");
+    std::vector<std::pair<std::string, std::string>> items;
+    items.reserve(InvertedIndex.size());
+    for (const auto &outerPair : InvertedIndex) {
+        if (outerPair.first.size() > 1)
+            items.emplace_back(outerPair.first, outerPair.first);
+    }
+    // for (auto &&i : items) {
+    //     spdlog::info("({},{})", i.first, i.second);
+    // }
+    std::stringstream os;
+    auto [result, err] = fst::compile<std::string>(items, os, true);
+    if (result == fst::Result::Success) {
+
+        std::ofstream file("../assets/library/fst.lib");
+        file << os.str();
+        file.flush();
+        file.close();
+
+        spdlog::info("[IndexBuilder] Successfully Compile Fst");
+    } else {
+        spdlog::error("[IndexBuilder] Failed to Compile Fst, result={}, error_code={}", (int)result, err);
+    }
+    spdlog::info("[IndexBuilder] Successfully Output Fst.lib");
+    spdlog::info("[IndexBuilder] Start to Write InvertedIndex into output.txt");
     std::ofstream file("../assets/library/output.txt");
     if (file.is_open()) {
         // 遍历InvertedIndex并将数据写入文件
         for (const auto &outerPair : InvertedIndex) {
+            if (outerPair.first.size() <= 1)
+                continue;
             // 写入外部map的键
             file << outerPair.first << ":";
             // 遍历内部map并将键值对写入文件
@@ -104,7 +148,7 @@ void IndexBuilder::outputIndex() {
         }
         // 关闭文件流
         file.close();
-        spdlog::info("[IndexBuilder] Write InvertedIndex successfully.");
+        spdlog::info("[IndexBuilder] Successfully Write InvertedIndex.");
     } else {
         spdlog::error("[IndexBuilder] Failed to open the file to Write InvertedIndex.");
     }
