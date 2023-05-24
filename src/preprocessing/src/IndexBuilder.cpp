@@ -205,7 +205,7 @@ void IndexBuilder::write_idf() {
 void IndexBuilder::build() {
     load_offsets();
     traverse_und_divide();
-    write_idf();
+    // write_idf();
 }
 
 IndexBuilder::~IndexBuilder() {}
