@@ -96,19 +96,6 @@ std::vector<SearchResultItem *> Queryer::createResultList(const PartsInfo &parts
         std::string str(size, ' ');
         lib_file.read(&str[0], size);
         XMLParser xmlParser(str);
-
-        ItemInfo info;
-        info.title = xmlParser.parser("Title");
-        info.text  = xmlParser.parser("Content");
-        info.desc  = xmlParser.parser("Title"); //描述
-        std::map<std::string, double>     correlation;
-        std::unique_ptr<SearchResultItem> sr = std::make_unique<SearchResultItem>();
-        // sr->score = pair.second;
-        // sr->url = xmlParser.parser("Url");
-        // sr->info = std::move(info);
-        // sr->correlation = std::move(correlation);
-        // sr->same_domain_numbers = 0;
-        // ret.emplace_back(sr);
     }
 
     std::vector<SearchResultItem *> ret_output(ret.begin() + begin, ret.begin() + end);

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include <unordered_set>
 #include <cppjieba/Jieba.hpp>
 #include "Datatype.h"
@@ -21,5 +22,6 @@ public:
     Divider();
     ~Divider();
     DivideResult divide(const std::string &sentence);
+    std::vector<std::string> divide_raw(const std::string &sentence);
 };
 } // namespace SG
