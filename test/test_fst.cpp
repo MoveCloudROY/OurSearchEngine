@@ -25,6 +25,11 @@ int main() {
         return 0;
     }
 
+    //精确测试
+    uint64_t output;
+    matcher.exact_match_search("使用寿命", output);
+    std::cout<<output<<std::endl;
+
     // 前缀测试
     std::cout << "[Prefix Test]" << std::endl;
     auto prefixes = matcher.common_prefix_search("使用寿命");
