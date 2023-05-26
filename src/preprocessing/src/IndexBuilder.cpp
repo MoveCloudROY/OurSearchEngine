@@ -40,17 +40,6 @@ void IndexBuilder::load_offsets() {
     docCnt = offsets.size();
 }
 
-void IndexBuilder::UpdateInvertedIndex(InvIndexList &InvertedIndex, DivideResult &result, int docID) {
-    tbb::queuing_mutex::scoped_lock lock{m_mutex};
-    for (const auto &pair : result.words) {
-        if (InvertedIndex.find(pair.first) == InvertedIndex.end()) {
-            InvertedIndex.insert({pair.first, {{docID, 1.0 * pair.second / result.totalFreq}}});
-        } else {
-            InvertedIndex[pair.first].insert(std::make_pair(docID, 1.0 * pair.second / result.totalFreq));
-        }
-    }
-}
-
 void IndexBuilder::traverse_und_divide() {
     spdlog::info("[IndexBuilder] Start to Divide Documents");
 
@@ -78,8 +67,8 @@ void IndexBuilder::traverse_und_divide() {
         for (size_t index = r.begin(); index < r.end(); ++index) {
             int beg  = offsets[index].first;
             int size = offsets[index].second;
-
-            lib_file.seekg(beg); //设置文件指针位置
+            //设置文件指针位置
+            lib_file.seekg(beg);
             //读取指定大小的数据
             std::string str(size, ' ');   //创建大小为size的字符串并填充空格字符
             lib_file.read(&str[0], size); //将数据读取到字符串中
@@ -99,8 +88,6 @@ void IndexBuilder::traverse_und_divide() {
                     tmp[tbb::this_task_arena::current_thread_index()][item.first].insert(std::make_pair(index, 1.0 * item.second / result.totalFreq));
                 }
             }
-
-            // UpdateInvertedIndex(InvertedIndex, result, index);
         }
         lib_file.close();
     });
@@ -194,22 +181,10 @@ void IndexBuilder::dumpSkipList(const std::filesystem::path path) {
     spdlog::info("[IndexBuilder] Successfully Write InvertedIndex.");
 }
 
-void IndexBuilder::write_idf() {
-    double        idf;
-    std::ofstream file("../assets/library/IDF.lib");
-    for (auto &item : InvertedIndex) {
-        idf = log10(docCnt / item.second.size());
-        file << item.first + " " + to_string(idf) + "\n";
-        file.flush();
-        idfs.insert({item.first, idf});
-    }
-    file.close();
-}
-
 void IndexBuilder::build() {
     load_offsets();
     traverse_und_divide();
-    write_idf();
+    // write_idf();
 }
 
 IndexBuilder::~IndexBuilder() {}

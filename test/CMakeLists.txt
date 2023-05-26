@@ -27,6 +27,11 @@ target_link_libraries(test_fst PUBLIC
     utils
 )
 
+add_executable(test_queryer test_queryer.cpp)
+target_link_libraries(test_queryer PUBLIC
+    query
+)
+
 if(UNIX)
     target_compile_options(test_skiplist PRIVATE -fno-omit-frame-pointer)
     target_compile_options(test_skiplist PRIVATE -fsanitize=address)
