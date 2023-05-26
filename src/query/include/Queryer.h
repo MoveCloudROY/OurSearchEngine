@@ -21,18 +21,18 @@ public:
 
 
 private:
-    Divider                                           divi;    // 分词器
-    std::map<uint64_t, std::pair<DocOffset, DocSize>> offsets; // 偏移量
-    fst::map<uint64_t> * matcher;
+    Divider                                           m_divider; // 分词器
+    std::map<uint64_t, std::pair<DocOffset, DocSize>> m_offsets; // 偏移量
+    fst::map<uint64_t>                               *m_matcher;
 
     Queryer();
     ~Queryer();
     Queryer(const Queryer &);
     Queryer &operator=(const Queryer &);
 
-    void                            load_offsets(); //读取偏移量
-    PartsInfo                       createPartsInfo(const std::string &content);
-    std::vector<SearchResultItem *> createResultList(const PartsInfo &partsInfo, uint64_t rkBegin, uint64_t rkEnd);
+    void                                           load_offsets(); //读取偏移量
+    PartsInfo                                      createPartsInfo(const std::string &content);
+    std::vector<std::unique_ptr<SearchResultItem>> createResultList(const PartsInfo &partsInfo, uint64_t rkBegin, uint64_t rkEnd);
 };
 
 } // namespace SG
