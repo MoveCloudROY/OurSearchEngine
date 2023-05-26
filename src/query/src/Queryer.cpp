@@ -19,6 +19,7 @@ Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t 
     SG::PartsInfo partsInfo = createPartsInfo(content);
     ret.addPartsInfo(partsInfo);
     auto resultList = createResultList(partsInfo, rkBegin, ekEnd);
+    ret.addItems(std::move(resultList));
     return ret.build();
 }
 
@@ -45,9 +46,11 @@ Queryer::~Queryer() {
 
 std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const PartsInfo &partsInfo, uint64_t begin, uint64_t end) {
     std::vector<std::unique_ptr<SearchResultItem>> ret;
-    std::vector<SkipList<Doc>>                     sls;
+    std::vector<std::unique_ptr<SkipList<Doc>>>    sls;
+    std::vector<double>                            idfs;
+    std::vector<std::pair<std::size_t, double>>    scores;
+    std::cout << "^" << std::endl;
     //calculate score of each key word
-    std::vector<std::pair<int, double>> scores;
     for (const auto &entry : partsInfo) {
         uint64_t output;
         m_matcher->exact_match_search(entry.first, output);
@@ -62,19 +65,26 @@ std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const P
         Json::Value             singleFile;
         std::string             errs;
         Json::parseFromStream(readerBuilder, inputFile, &singleFile, &errs);
-        std::cout << singleFile.toStyledString() << std::endl;
-        for (auto &&term : singleFile) { // 数组类型，遍历每个元素
-            int id = term["id"].asInt();
-            if (id == output) { // 找到匹配的 id 值，返回对应的 "skl"
-                SkipList<Doc> sl(term["skl"]);
-                sls.push_back(sl);
-                std::cout<<"1";
-                sl.print();
+        inputFile.close();
+        for (auto &&term : singleFile) {        // 数组类型，遍历每个元素
+            if (term["id"].asInt() == output) { // 找到匹配的id值，返回对应的"skl"
+                sls.push_back(std::make_unique<SkipList<Doc>>(term["skl"]));
+                idfs.push_back(term["idf"].asDouble());
+                break;
             }
         }
-        inputFile.close();
+        std::cout << "^" << std::endl;
+        
     }
-
+    
+    std::vector<std::vector<Doc>> combineResult = SkipList<Doc>::combine(sls);
+    for (int i = 0; i < combineResult[0].size(); ++i) {
+        double score = 0;
+        for (int j = 0; j < idfs.size(); ++j) {
+            score += (idfs[j] * combineResult[j][i].tf);
+        }
+        scores.push_back(std::make_pair(combineResult[0][i].docId, score));
+    }
     std::sort(scores.begin(), scores.end(), [](const auto &a, const auto &b) {
         return a.second < b.second;
     });
@@ -92,13 +102,12 @@ std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const P
         ItemInfo info;
         info.title = xmlParser.parser("Title");
         info.text  = xmlParser.parser("Content");
-        info.desc  = xmlParser.parser("Title"); //描述
-        std::map<std::string, double>     correlation;
+        info.desc  = xmlParser.parser("Title");        //描述暂时用标题替代
+        std::map<std::string, double>     correlation; //相关性暂时设为空
         std::unique_ptr<SearchResultItem> item = std::make_unique<SearchResultItem>(scores[i].second, xmlParser.parser("Url"), info, correlation, 0);
 
         ret.push_back(std::move(item));
     }
-            
     lib_file.close();
     return ret;
 }
