@@ -35,10 +35,10 @@ int main() {
     }
     l3.print();
 
-    std::vector<SkipList<SG::Doc> *> p;
-    p.push_back(&l1);
-    p.push_back(&l2);
-    p.push_back(&l3);
+    std::vector<std::unique_ptr<SkipList<SG::Doc>>> p;
+    p.push_back(std::make_unique<SkipList<SG::Doc>>(l1));
+    p.push_back(std::make_unique<SkipList<SG::Doc>>(l2));
+    p.push_back(std::make_unique<SkipList<SG::Doc>>(l3));
 
     auto ans = SkipList<SG::Doc>::combine(p);
 
