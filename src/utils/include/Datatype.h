@@ -30,10 +30,19 @@ struct ItemInfo {
 
 struct SearchResultItem {
     double                        score;
-    std::string                   url;
+    std::string                   url ;
     ItemInfo                      info;
     std::map<std::string, double> correlation;
     uint64_t                      same_domain_numbers;
+    
+    SearchResultItem () = default;
+    SearchResultItem (SearchResultItem&& t)
+        :score(t.score),
+         url(std::move(t.url)),
+         info(std::move(t.info)),
+         correlation(std::move(t.correlation)),
+         same_domain_numbers(t.same_domain_numbers) {
+    }
 };
 
 struct SearchResult {
