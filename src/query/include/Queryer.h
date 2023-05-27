@@ -29,10 +29,10 @@ private:
     Queryer(const Queryer &);
     Queryer &operator=(const Queryer &);
 
-    void                                           load_offsets();                                                            //读取偏移量
-    std::vector<std::string>                       predict_sentence(const std::string &content, const std::string &lastWord); //对当前搜索语句进行预测
-    DivideResult                                   createPartsInfo(const std::string &content);
-    std::vector<std::unique_ptr<SearchResultItem>> createResultList(const PartsInfo &partsInfo, uint64_t rkBegin, uint64_t rkEnd);
+    void                                                                load_offsets();                                                            //读取偏移量
+    std::vector<std::string>                                            predict_sentence(const std::string &content, const std::string &lastWord); //对当前搜索语句进行预测
+    DivideResult                                                        createPartsInfo(const std::string &content);
+    std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> createResultList(const PartsInfo &partsInfo, uint64_t rkBegin, uint64_t rkEnd);
 };
 
 } // namespace SG

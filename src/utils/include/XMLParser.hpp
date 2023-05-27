@@ -33,7 +33,7 @@ public:
             exit(-1);
         }
 
-        string content = page_.substr(bpos + 1, len - 2); //截取标签包含内容
+        string content = page_.substr(bpos, len); //截取标签包含内容
 #if 0
 		if(content[content.size()-1]=='\n')
 			content[content.size()-1]=='\0';

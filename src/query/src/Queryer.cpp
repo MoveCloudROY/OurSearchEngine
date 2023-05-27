@@ -1,4 +1,5 @@
 #include <Queryer.h>
+#include <cstdint>
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <json/value.h>
@@ -14,13 +15,14 @@
 namespace SG {
 using SG::Core::SkipList;
 
-Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t ekEnd) {
+Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t rkEnd) {
     SG::SearchResultBuilder ret;
 
     SG::DivideResult dire = createPartsInfo(content);
     ret.addPartsInfo(dire.words);
-    auto resultList = createResultList(dire.words, rkBegin, ekEnd);
+    auto [resultList, totalCnt] = createResultList(dire.words, rkBegin, rkEnd);
     ret.addItems(std::move(resultList));
+    ret.addItemTotalNumber(totalCnt);
     return ret.build();
 }
 
@@ -45,18 +47,17 @@ Queryer::~Queryer() {
     delete m_matcher;
 }
 
-std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const PartsInfo &partsInfo, uint64_t begin, uint64_t end) {
+std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> Queryer::createResultList(const PartsInfo &partsInfo, uint64_t begin, uint64_t end) {
     std::vector<std::unique_ptr<SearchResultItem>> ret;
     std::vector<std::unique_ptr<SkipList<Doc>>>    sls;
     std::vector<double>                            idfs;
     std::vector<std::pair<std::size_t, double>>    scores;
-    std::cout << "^" << std::endl;
     //calculate score of each key word
     for (const auto &entry : partsInfo) {
         uint64_t output;
         m_matcher->exact_match_search(entry.first, output);
         uint64_t      outputID = output / 400;
-        std::ifstream inputFile("../assets/library/output/" + std::to_string(outputID) + ".lib");
+        std::ifstream inputFile("../assets/library/skl/" + std::to_string(outputID) + ".lib");
         if (!inputFile.is_open()) {
             spdlog::error("[Queryer::creatResultList] Failed to open json file");
             inputFile.close();
@@ -74,25 +75,30 @@ std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const P
                 break;
             }
         }
-        std::cout << "^" << std::endl;
-        
     }
-    
+
     std::vector<std::vector<Doc>> combineResult = SkipList<Doc>::combine(sls);
-    for (int i = 0; i < combineResult[0].size(); ++i) {
+
+    std::cout << combineResult.size() << std::endl;
+    for (auto &i : combineResult) {
+        std::cout << i.size() << std::endl;
+    }
+    std::cout << idfs.size() << std::endl;
+
+    for (int i = 0; i < combineResult.size(); ++i) {
         double score = 0;
         for (int j = 0; j < idfs.size(); ++j) {
-            score += (idfs[j] * combineResult[j][i].tf);
+            score += (idfs[j] * combineResult[i][j].tf);
         }
-        scores.push_back(std::make_pair(combineResult[0][i].docId, score));
+        scores.push_back(std::make_pair(combineResult[i][0].docId, score));
     }
     std::sort(scores.begin(), scores.end(), [](const auto &a, const auto &b) {
-        return a.second < b.second;
+        return a.second > b.second;
     });
 
     //find doc by m_offsets
     std::ifstream lib_file("../assets/library/docLibrary.lib");
-    for (auto i = begin; i < scores.size() && i <= end; ++i) {
+    for (auto i = begin; i < scores.size() && i < end; ++i) {
         int beg  = m_offsets[scores[i].first].first;
         int size = m_offsets[scores[i].first].second;
         lib_file.seekg(beg);
@@ -103,14 +109,14 @@ std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const P
         ItemInfo info;
         info.title = xmlParser.parser("Title");
         info.text  = xmlParser.parser("Content");
-        info.desc  = xmlParser.parser("Title");        //描述暂时用标题替代
-        std::map<std::string, double>     correlation; //相关性暂时设为空
-        std::unique_ptr<SearchResultItem> item = std::make_unique<SearchResultItem>(scores[i].second, xmlParser.parser("Url"), info, correlation, 0);
+        info.desc  = info.text.substr(0, std::min(static_cast<uint64_t>(info.text.size()), 256ul)); //描述暂时用标题替代
+        std::map<std::string, double>     correlation;                                              //相关性暂时设为空
+        std::unique_ptr<SearchResultItem> item = std::make_unique<SearchResultItem>(scores[i].second, "file://" + xmlParser.parser("Url"), info, correlation, 0);
 
         ret.push_back(std::move(item));
     }
     lib_file.close();
-    return ret;
+    return {std::move(ret), scores.size()};
 }
 
 void Queryer::load_offsets() {
@@ -125,16 +131,14 @@ void Queryer::load_offsets() {
     offset_file.close();
 }
 
-std::vector<std::string> Queryer::predict_sentence(const std::string &content,const std::string &lastWord)
-{
+std::vector<std::string> Queryer::predict_sentence(const std::string &content, const std::string &lastWord) {
     std::vector<std::string> prests;
-    auto predictives = m_matcher->predictive_search(lastWord);
-    int l=lastWord.length();
-    size_t lastWordPos=content.rfind(lastWord);
-    for(auto &&i : predictives)
-    {
-        string tmp=content;
-        prests.push_back(tmp.replace(lastWordPos,l,i.first));
+    auto                     predictives = m_matcher->predictive_search(lastWord);
+    int                      l           = lastWord.length();
+    size_t                   lastWordPos = content.rfind(lastWord);
+    for (auto &&i : predictives) {
+        string tmp = content;
+        prests.push_back(tmp.replace(lastWordPos, l, i.first));
     }
     return prests;
 }

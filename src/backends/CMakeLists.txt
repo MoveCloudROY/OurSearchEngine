@@ -15,4 +15,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog
     indicators
     drogon
+    query
 )
