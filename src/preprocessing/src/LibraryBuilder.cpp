@@ -77,7 +77,7 @@ void LibraryBuilder::traverse_directory() {
     std::ofstream lib_file("../assets/library/docLibrary.lib");
     std::ofstream offset_file("../assets/library/docOffsets.lib");
     long long     offset = 0; //记录写入位置的偏移量，用于遍历库文件
-    int           docID  = 1;
+    int           docID  = 0;
     for (int index = 0; index < file_path_list.size(); index++) {
         bar.set_progress((index + 1) * 100 / file_path_list.size());
 

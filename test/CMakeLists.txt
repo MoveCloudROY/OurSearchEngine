@@ -36,4 +36,8 @@ if(UNIX)
     target_compile_options(test_skiplist PRIVATE -fno-omit-frame-pointer)
     target_compile_options(test_skiplist PRIVATE -fsanitize=address)
     target_link_options(test_skiplist PRIVATE -fsanitize=address)
+
+    target_compile_options(test_pre PRIVATE -fno-omit-frame-pointer)
+    target_compile_options(test_pre PRIVATE -fsanitize=address)
+    target_link_options(test_pre PRIVATE -fsanitize=address)
 endif(UNIX)

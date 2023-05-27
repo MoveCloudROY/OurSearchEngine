@@ -61,12 +61,12 @@ void IndexBuilder::traverse_und_divide() {
     tbb::global_control c{tbb::global_control::max_allowed_parallelism, MAX_THREADS};
     InvIndexList        tmp[MAX_THREADS];
 
-    tbb::parallel_for(tbb::blocked_range<size_t>{1, offsets.size() + 1}, [&](tbb::blocked_range<size_t> r) {
+    tbb::parallel_for(tbb::blocked_range<size_t>{0, offsets.size()}, [&](tbb::blocked_range<size_t> r) {
         std::ifstream lib_file("../assets/library/docLibrary.lib");
         bar.tick();
         for (size_t index = r.begin(); index < r.end(); ++index) {
-            int beg  = offsets[index].first;
-            int size = offsets[index].second;
+            int beg  = offsets.at(index).first;
+            int size = offsets.at(index).second;
             //设置文件指针位置
             lib_file.seekg(beg);
             //读取指定大小的数据
