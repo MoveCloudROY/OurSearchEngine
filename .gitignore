@@ -35,6 +35,10 @@
 /.cache
 /.vscode
 /.idea
-/assets
+/assets/library
+/assets/material
+/assets/seperate_models
+/assets/*.json
+!/assets/config.json
 /build
 /bin/*
