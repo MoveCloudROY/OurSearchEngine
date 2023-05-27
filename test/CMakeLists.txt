@@ -32,6 +32,11 @@ target_link_libraries(test_queryer PUBLIC
     query
 )
 
+add_executable(test_jieba test_jieba.cpp)
+target_link_libraries(test_jieba PUBLIC
+    utils
+)
+
 if(UNIX)
     target_compile_options(test_skiplist PRIVATE -fno-omit-frame-pointer)
     target_compile_options(test_skiplist PRIVATE -fsanitize=address)

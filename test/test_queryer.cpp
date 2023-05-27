@@ -3,6 +3,6 @@ using namespace SG;
 int main()
 {
     Queryer& queryer=Queryer::getInstance();
-    queryer.get("使用寿命",1,10);
+    queryer.predict_sentence("使用寿命","寿命");
 
 }

@@ -4,6 +4,7 @@
 #include <json/value.h>
 #include <fstream>
 #include <string>
+#include <iostream>
 
 #include "XMLParser.hpp"
 #include "Datatype.h"
@@ -16,15 +17,15 @@ using SG::Core::SkipList;
 Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t ekEnd) {
     SG::SearchResultBuilder ret;
 
-    SG::PartsInfo partsInfo = createPartsInfo(content);
-    ret.addPartsInfo(partsInfo);
-    auto resultList = createResultList(partsInfo, rkBegin, ekEnd);
+    SG::DivideResult dire = createPartsInfo(content);
+    ret.addPartsInfo(dire.words);
+    auto resultList = createResultList(dire.words, rkBegin, ekEnd);
     ret.addItems(std::move(resultList));
     return ret.build();
 }
 
-PartsInfo Queryer::createPartsInfo(const std::string &content) {
-    return m_divider.divide(content).words;
+DivideResult Queryer::createPartsInfo(const std::string &content) {
+    return m_divider.divide(content);
 }
 
 Queryer::Queryer() {
@@ -122,6 +123,20 @@ void Queryer::load_offsets() {
             m_offsets.insert({key, std::make_pair(value1, value2)});
     }
     offset_file.close();
+}
+
+std::vector<std::string> Queryer::predict_sentence(const std::string &content,const std::string &lastWord)
+{
+    std::vector<std::string> prests;
+    auto predictives = m_matcher->predictive_search(lastWord);
+    int l=lastWord.length();
+    size_t lastWordPos=content.rfind(lastWord);
+    for(auto &&i : predictives)
+    {
+        string tmp=content;
+        prests.push_back(tmp.replace(lastWordPos,l,i.first));
+    }
+    return prests;
 }
 
 } // namespace SG
