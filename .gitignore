@@ -36,5 +36,6 @@
 /.vscode
 /.idea
 /assets
+!/assets/config.json
 /build
 /bin/*
