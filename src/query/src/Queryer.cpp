@@ -5,7 +5,7 @@
 #include <json/value.h>
 #include <fstream>
 #include <string>
-
+#include <filesystem>
 #include "XMLParser.hpp"
 #include "Datatype.h"
 #include "SearchResultBuilder.h"
@@ -109,8 +109,12 @@ std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> Queryer::cre
         info.title = xmlParser.parser("Title");
         info.text  = xmlParser.parser("Content");
         info.desc  = info.text.substr(0, std::min(static_cast<uint64_t>(info.text.size()), 256ul)); //描述暂时用标题替代
-        std::map<std::string, double>     correlation;                                              //相关性暂时设为空
-        std::unique_ptr<SearchResultItem> item = std::make_unique<SearchResultItem>(scores[i].second, "file://" + xmlParser.parser("Url"), info, correlation, 0);
+        std::map<std::string, double> correlation;
+        //相关性暂时设为空
+        auto url = std::filesystem::relative(xmlParser.parser("Url"), "../assets/material");
+
+        std::unique_ptr<SearchResultItem>
+            item = std::make_unique<SearchResultItem>(scores[i].second, "http://localhost:7777/" + url.string(), info, correlation, 0);
 
         ret.push_back(std::move(item));
     }
