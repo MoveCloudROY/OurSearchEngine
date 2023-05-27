@@ -77,20 +77,27 @@ std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> Queryer::cre
     }
 
     std::vector<std::vector<Doc>> combineResult = SkipList<Doc>::combine(sls);
-    for (int i = 0; i < combineResult[0].size(); ++i) {
+
+    std::cout << combineResult.size() << std::endl;
+    for (auto &i : combineResult) {
+        std::cout << i.size() << std::endl;
+    }
+    std::cout << idfs.size() << std::endl;
+
+    for (int i = 0; i < combineResult.size(); ++i) {
         double score = 0;
         for (int j = 0; j < idfs.size(); ++j) {
-            score += (idfs[j] * combineResult[j][i].tf);
+            score += (idfs[j] * combineResult[i][j].tf);
         }
-        scores.push_back(std::make_pair(combineResult[0][i].docId, score));
+        scores.push_back(std::make_pair(combineResult[i][0].docId, score));
     }
     std::sort(scores.begin(), scores.end(), [](const auto &a, const auto &b) {
-        return a.second < b.second;
+        return a.second > b.second;
     });
 
     //find doc by m_offsets
     std::ifstream lib_file("../assets/library/docLibrary.lib");
-    for (auto i = begin; i < scores.size() && i <= end; ++i) {
+    for (auto i = begin; i < scores.size() && i < end; ++i) {
         int beg  = m_offsets[scores[i].first].first;
         int size = m_offsets[scores[i].first].second;
         lib_file.seekg(beg);
@@ -101,9 +108,9 @@ std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> Queryer::cre
         ItemInfo info;
         info.title = xmlParser.parser("Title");
         info.text  = xmlParser.parser("Content");
-        info.desc  = xmlParser.parser("Title");        //描述暂时用标题替代
-        std::map<std::string, double>     correlation; //相关性暂时设为空
-        std::unique_ptr<SearchResultItem> item = std::make_unique<SearchResultItem>(scores[i].second, xmlParser.parser("Url"), info, correlation, 0);
+        info.desc  = info.text.substr(0, std::min(static_cast<uint64_t>(info.text.size()), 256ul)); //描述暂时用标题替代
+        std::map<std::string, double>     correlation;                                              //相关性暂时设为空
+        std::unique_ptr<SearchResultItem> item = std::make_unique<SearchResultItem>(scores[i].second, "file://" + xmlParser.parser("Url"), info, correlation, 0);
 
         ret.push_back(std::move(item));
     }

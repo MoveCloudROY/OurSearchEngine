@@ -42,7 +42,7 @@ void LibraryBuilder::scan_directory() {
         for (const auto &entry : fs::directory_iterator(current_path)) {
             bar.tick();
             if (fs::is_regular_file(entry) && entry.path().extension() == ".txt") {
-                file_path_list.push_back(entry.path().string());
+                file_path_list.push_back(std::filesystem::canonical(entry.path()).string());
             } else if (fs::is_directory(entry)) {
                 path_stack.push(entry.path());
             }
