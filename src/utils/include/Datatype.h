@@ -13,6 +13,7 @@ using PartsInfo = std::map<std::string, uint64_t>;
 struct DivideResult {
     PartsInfo words; //<word,frequency>
     uint64_t  totalFreq;
+    std::string lastWord;
 };
 
 struct SearchReq {
@@ -34,6 +35,29 @@ struct SearchResultItem {
     ItemInfo                      info;
     std::map<std::string, double> correlation;
     uint64_t                      same_domain_numbers;
+
+    SearchResultItem() = default;
+    SearchResultItem(const SearchResultItem &t)
+        : score(t.score)
+        , url(std::move(t.url))
+        , info(std::move(t.info))
+        , correlation(std::move(t.correlation))
+        , same_domain_numbers(t.same_domain_numbers) {
+    }
+    SearchResultItem(SearchResultItem &&t)
+        : score(t.score)
+        , url(std::move(t.url))
+        , info(std::move(t.info))
+        , correlation(std::move(t.correlation))
+        , same_domain_numbers(t.same_domain_numbers) {
+    }
+    SearchResultItem(double score, const std::string &url, const ItemInfo &info, const std::map<std::string, double> &correlation, uint64_t same_domain_numbers)
+        : score(score)
+        , url(url)
+        , info(info)
+        , correlation(correlation)
+        , same_domain_numbers(same_domain_numbers) {
+    }
 };
 
 struct SearchResult {

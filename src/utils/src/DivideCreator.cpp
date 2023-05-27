@@ -33,6 +33,7 @@ DivideResult Divider::divide(const std::string &sentence) {
     DivideResult             result;
     jieba.CutForSearch(sentence, raws, true);
     delete_stopwords(raws);
+    result.lastWord=raws.back();
     //duplicate removal und write to result
     for (const std::string &raw : raws) {
         if (result.words.find(raw) == result.words.end()) {

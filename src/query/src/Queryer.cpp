@@ -19,13 +19,12 @@ Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t 
     SG::PartsInfo partsInfo = createPartsInfo(content);
     ret.addPartsInfo(partsInfo);
     auto resultList = createResultList(partsInfo, rkBegin, ekEnd);
-
+    ret.addItems(std::move(resultList));
     return ret.build();
 }
 
 PartsInfo Queryer::createPartsInfo(const std::string &content) {
-    DivideResult result = divi.divide(content);
-    return result.words;
+    return m_divider.divide(content).words;
 }
 
 Queryer::Queryer() {
@@ -35,93 +34,82 @@ Queryer::Queryer() {
     ss << is.rdbuf();
     const auto &byte_code = ss.str();
     is.close();
-    matcher = new fst::map<uint64_t>{byte_code.data(), byte_code.size()};
-    if (!matcher) {
-        spdlog::error("[Queryer::creatResultList] Failed to create matcher");
+
+    m_matcher = new fst::map<uint64_t>{byte_code.data(), byte_code.size()};
+    if (!m_matcher) {
+        spdlog::error("[Queryer::creatResultList] Failed to create m_matcher");
     }
 }
 Queryer::~Queryer() {
-    delete matcher;
+    delete m_matcher;
 }
 
-std::vector<SearchResultItem *> Queryer::createResultList(const PartsInfo &partsInfo, uint64_t begin, uint64_t end) {
-    std::vector<SearchResultItem *> ret;
-
+std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const PartsInfo &partsInfo, uint64_t begin, uint64_t end) {
+    std::vector<std::unique_ptr<SearchResultItem>> ret;
+    std::vector<std::unique_ptr<SkipList<Doc>>>    sls;
+    std::vector<double>                            idfs;
+    std::vector<std::pair<std::size_t, double>>    scores;
+    std::cout << "^" << std::endl;
     //calculate score of each key word
-    std::map<int, double> scores;                                  //<docID,scores>
     for (const auto &entry : partsInfo) {
-        auto predictives = matcher->predictive_search(entry.first); //预测模式
-        for (auto &&i : predictives) {
-            uint64_t      outputID = i.second / 400;
-            std::ifstream inputFile("../assets/library/output/" + std::to_string(outputID) + ".txt");
-            if (!inputFile.is_open()) {
-                spdlog::error("[Queryer::creatResultList] Failed to open json file");
-            }
-            Json::CharReaderBuilder readerBuilder;
-            Json::Value             singleFile;
-            std::string             errs;
-            Json::parseFromStream(readerBuilder, inputFile, &singleFile, &errs);
-            if (singleFile.isArray()) {               // 检查值的类型
-                for (const auto &term : singleFile) { // 数组类型，遍历每个元素
-                    if (term.isMember("id")) {        // 检查是否有 "id" 字段
-                        int id = term["id"].asInt();
-                        if (id == i.second) {         // 找到匹配的 id 值，返回对应的 "skl"
-                            if (term.isMember("skl")) {
-                                SkipList<Doc> sl(term["skl"]);
-                                // 遍历跳表的所有元素
-                                auto currentNode = sl.front();
-                                while (currentNode != nullptr) {
-                                    Doc    doc   = currentNode->value;
-                                    double score = doc.tf * term["idf"].asDouble();
-                                    if (scores.find(doc.docId) == scores.end()) {
-                                        scores.insert({doc.docId, score});
-                                    } else {
-                                        scores[doc.docId] += score;
-                                    }
-                                    currentNode = currentNode->right; // 移动到下一个节点
-                                }
-                            } else {                                  // 没有 "skl" 字段
-                                break;
-                            }
-                        }
-                    }
-                }
+        uint64_t output;
+        m_matcher->exact_match_search(entry.first, output);
+        uint64_t      outputID = output / 400;
+        std::ifstream inputFile("../assets/library/output/" + std::to_string(outputID) + ".lib");
+        if (!inputFile.is_open()) {
+            spdlog::error("[Queryer::creatResultList] Failed to open json file");
+            inputFile.close();
+            break;
+        }
+        Json::CharReaderBuilder readerBuilder;
+        Json::Value             singleFile;
+        std::string             errs;
+        Json::parseFromStream(readerBuilder, inputFile, &singleFile, &errs);
+        inputFile.close();
+        for (auto &&term : singleFile) {        // 数组类型，遍历每个元素
+            if (term["id"].asInt() == output) { // 找到匹配的id值，返回对应的"skl"
+                sls.push_back(std::make_unique<SkipList<Doc>>(term["skl"]));
+                idfs.push_back(term["idf"].asDouble());
+                break;
             }
         }
+        std::cout << "^" << std::endl;
+        
     }
-
-    //sort docs by scores
-    std::vector<std::pair<int, double>> pairs;
-    for (const auto &pair : scores) {
-        pairs.push_back(pair);
+    
+    std::vector<std::vector<Doc>> combineResult = SkipList<Doc>::combine(sls);
+    for (int i = 0; i < combineResult[0].size(); ++i) {
+        double score = 0;
+        for (int j = 0; j < idfs.size(); ++j) {
+            score += (idfs[j] * combineResult[j][i].tf);
+        }
+        scores.push_back(std::make_pair(combineResult[0][i].docId, score));
     }
-    std::sort(pairs.begin(), pairs.end(), [](const auto &a, const auto &b) {
+    std::sort(scores.begin(), scores.end(), [](const auto &a, const auto &b) {
         return a.second < b.second;
     });
 
-    //find doc by offsets
+    //find doc by m_offsets
     std::ifstream lib_file("../assets/library/docLibrary.lib");
-    for (const auto &pair : scores) {
-        int         beg  = offsets[pair.first].first;
-        int         size = offsets[pair.first].second;
+    for (auto i = begin; i < scores.size() && i <= end; ++i) {
+        int beg  = m_offsets[scores[i].first].first;
+        int size = m_offsets[scores[i].first].second;
         lib_file.seekg(beg);
         std::string str(size, ' ');
         lib_file.read(&str[0], size);
-        XMLParser   xmlParser(str);
+        XMLParser xmlParser(str);
 
-        SearchResultItem* sr;
-        sr->score=pair.second;
-        sr->url = xmlParser.parser("Url");
-        sr->info.title=xmlParser.parser("Title");
-        // sr.info.desc=xmlParser.parser("Title");
-        sr->info.text=xmlParser.parser("Content");
-        // sr.correlation
-        // sr.same_domain_numbers
-        ret.push_back(sr);
+        ItemInfo info;
+        info.title = xmlParser.parser("Title");
+        info.text  = xmlParser.parser("Content");
+        info.desc  = xmlParser.parser("Title");        //描述暂时用标题替代
+        std::map<std::string, double>     correlation; //相关性暂时设为空
+        std::unique_ptr<SearchResultItem> item = std::make_unique<SearchResultItem>(scores[i].second, xmlParser.parser("Url"), info, correlation, 0);
+
+        ret.push_back(std::move(item));
     }
-
-    std::vector<SearchResultItem *> ret_output(ret.begin()+begin, ret.begin()+end);
-    return ret_output;
+    lib_file.close();
+    return ret;
 }
 
 void Queryer::load_offsets() {
@@ -131,7 +119,7 @@ void Queryer::load_offsets() {
         int                key, value1, value2;
         std::istringstream iss(line);
         while (iss >> key >> value1 >> value2)
-            offsets.insert({key, std::make_pair(value1, value2)});
+            m_offsets.insert({key, std::make_pair(value1, value2)});
     }
     offset_file.close();
 }
