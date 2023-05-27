@@ -4,7 +4,7 @@
 
 int main() {
     SG::Divider      d;
-    SG::DivideResult r = d.divide("分解出来的结果是存在vector容器中的，这个可以根据具体需");
+    SG::DivideResult r = d.divide("艺术");
     std::cout << r.lastWord << std::endl;
 
     std::string a           = "我爱你吗";
