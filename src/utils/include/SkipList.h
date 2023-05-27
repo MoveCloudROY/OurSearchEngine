@@ -188,7 +188,7 @@ Typically:
         std::cout << "==================" << std::endl;
     }
 
-    static std::vector<std::vector<TV>> combine(std::vector<SkipList<TV> *> &v) {
+    static std::vector<std::vector<TV>> combine(std::vector<std::unique_ptr<SkipList<TV>>> &v) {
         std::vector<std::vector<TV>> ret;
         if (v.empty())
             return ret;

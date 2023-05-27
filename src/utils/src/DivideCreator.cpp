@@ -25,24 +25,18 @@ void Divider::delete_stopwords(std::vector<std::string> &raws) {
     raws.erase(std::remove_if(raws.begin(), raws.end(), [&](const std::string &word) {
                    return stopWords_.find(word) != stopWords_.end();
                }),
-    raws.end());
+               raws.end());
 }
-
-// void Divider::calculateTF(DivideResult &result) {
-//     //该词语在文本中出现的次数除以文本中的总词数
-//     for (auto &pair : result.words) {
-//         double tmp = pair.second / result.totalFreq;
-//         result.tfs.push_back(tmp);
-//     }
-//     if (result.tfs.size() != result.words.size())
-//         std::cout << "Error: calculateTF!" << std::endl;
-// }
 
 DivideResult Divider::divide(const std::string &sentence) {
     std::vector<std::string> raws;
     DivideResult             result;
     jieba.CutForSearch(sentence, raws, true);
     delete_stopwords(raws);
+    if (raws.size())
+        result.lastWord = *raws.rbegin();
+    else
+        result.lastWord = "";
     //duplicate removal und write to result
     for (const std::string &raw : raws) {
         if (result.words.find(raw) == result.words.end()) {
@@ -52,7 +46,6 @@ DivideResult Divider::divide(const std::string &sentence) {
         }
     }
     result.totalFreq = raws.size();
-    // calculateTF(result);
     return result;
 }
 

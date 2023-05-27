@@ -18,23 +18,19 @@ using DocOffset    = int;
 using DocSize      = int;
 class IndexBuilder {
 private:
-    uint64_t                                          docCnt = 0; // 文件总数
-    std::map<uint64_t, std::pair<DocOffset, DocSize>> offsets;    // 偏移量
-    std::map<std::string, double>                     idfs;       // idf
-    Divider                                           divi;       // 分词器
-    tbb::queuing_mutex                                m_mutex;    // map 锁
+    uint64_t                                          docCnt = 0;    // 文件总数
+    std::map<uint64_t, std::pair<DocOffset, DocSize>> offsets;       // 偏移量
+    Divider                                           divi;          // 分词器
+    tbb::queuing_mutex                                m_mutex;       // map 锁
+    InvIndexList                                      InvertedIndex; // 倒排索引,<词语，<文档id，词频tf>>
 
-    void
-         UpdateInvertedIndex(InvIndexList &InvertedIndex, DivideResult &result, int docID); //更新倒排索引
-    void load_offsets();                                                                    //读取偏移量
-    void traverse_und_divide();                                                             //遍历网页库并分词
-    void write_idf();                                                                       //计算idf并写入文件中
+    void load_offsets();        //读取偏移量
+    void traverse_und_divide(); //遍历网页库并分词
 
 public:
-    InvIndexList InvertedIndex; //倒排索引,<词语，<文档id，词频tf>>
     IndexBuilder() = default;
     ~IndexBuilder();
-    void dumpFst(const std::string &path);
+    void dumpFst(const std::filesystem::path &path);
     void dumpSkipList(const std::filesystem::path path); //将倒排索引输出到文件中进行查阅
     void build();                                        //构建倒排索引
 };

@@ -27,8 +27,21 @@ target_link_libraries(test_fst PUBLIC
     utils
 )
 
-if(UNIX)
+add_executable(test_queryer test_queryer.cpp)
+target_link_libraries(test_queryer PUBLIC
+    query
+)
+
+if(UNIX AND CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_options(test_skiplist PRIVATE -fno-omit-frame-pointer)
     target_compile_options(test_skiplist PRIVATE -fsanitize=address)
     target_link_options(test_skiplist PRIVATE -fsanitize=address)
-endif(UNIX)
+
+    target_compile_options(test_pre PRIVATE -fno-omit-frame-pointer)
+    target_compile_options(test_pre PRIVATE -fsanitize=address)
+    target_link_options(test_pre PRIVATE -fsanitize=address)
+
+    target_compile_options(test_server PRIVATE -fno-omit-frame-pointer)
+    target_compile_options(test_server PRIVATE -fsanitize=address)
+    target_link_options(test_server PRIVATE -fsanitize=address)
+endif()
