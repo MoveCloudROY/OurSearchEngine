@@ -1,0 +1,27 @@
+{
+    "listeners": [
+        {
+            "address": "0.0.0.0",
+            "port": 7777,
+            "https": false
+        }
+    ],
+    "threads_num": 4,
+    "document_root": "/home/roy1994/Code/Project/OurSearchEngine/assets/material",
+    "file_types": [
+        "gif",
+        "png",
+        "jpg",
+        "js",
+        "css",
+        "html",
+        "ico",
+        "swf",
+        "xap",
+        "apk",
+        "cur",
+        "xml",
+        "htm",
+        "txt"
+    ]
+}
