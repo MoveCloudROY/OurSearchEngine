@@ -1,4 +1,5 @@
 #include <Queryer.h>
+#include <cstdint>
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <json/value.h>
@@ -13,13 +14,14 @@
 namespace SG {
 using SG::Core::SkipList;
 
-Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t ekEnd) {
+Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t rkEnd) {
     SG::SearchResultBuilder ret;
 
     SG::PartsInfo partsInfo = createPartsInfo(content);
     ret.addPartsInfo(partsInfo);
-    auto resultList = createResultList(partsInfo, rkBegin, ekEnd);
+    auto [resultList, totalCnt] = createResultList(partsInfo, rkBegin, rkEnd);
     ret.addItems(std::move(resultList));
+    ret.addItemTotalNumber(totalCnt);
     return ret.build();
 }
 
@@ -44,18 +46,17 @@ Queryer::~Queryer() {
     delete m_matcher;
 }
 
-std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const PartsInfo &partsInfo, uint64_t begin, uint64_t end) {
+std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> Queryer::createResultList(const PartsInfo &partsInfo, uint64_t begin, uint64_t end) {
     std::vector<std::unique_ptr<SearchResultItem>> ret;
     std::vector<std::unique_ptr<SkipList<Doc>>>    sls;
     std::vector<double>                            idfs;
     std::vector<std::pair<std::size_t, double>>    scores;
-    std::cout << "^" << std::endl;
     //calculate score of each key word
     for (const auto &entry : partsInfo) {
         uint64_t output;
         m_matcher->exact_match_search(entry.first, output);
         uint64_t      outputID = output / 400;
-        std::ifstream inputFile("../assets/library/output/" + std::to_string(outputID) + ".lib");
+        std::ifstream inputFile("../assets/library/skl/" + std::to_string(outputID) + ".lib");
         if (!inputFile.is_open()) {
             spdlog::error("[Queryer::creatResultList] Failed to open json file");
             inputFile.close();
@@ -73,10 +74,8 @@ std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const P
                 break;
             }
         }
-        std::cout << "^" << std::endl;
-        
     }
-    
+
     std::vector<std::vector<Doc>> combineResult = SkipList<Doc>::combine(sls);
     for (int i = 0; i < combineResult[0].size(); ++i) {
         double score = 0;
@@ -109,7 +108,7 @@ std::vector<std::unique_ptr<SearchResultItem>> Queryer::createResultList(const P
         ret.push_back(std::move(item));
     }
     lib_file.close();
-    return ret;
+    return {std::move(ret), scores.size()};
 }
 
 void Queryer::load_offsets() {

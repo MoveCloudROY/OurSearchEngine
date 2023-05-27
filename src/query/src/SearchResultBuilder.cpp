@@ -1,5 +1,6 @@
 #include "SearchResultBuilder.h"
 #include <cstddef>
+#include <cstdint>
 #include <json/value.h>
 
 #include <memory>
@@ -19,13 +20,18 @@ void SearchResultBuilder::addItem(SearchResultItem &&item) {
 
 void SearchResultBuilder::addItems(std::vector<std::unique_ptr<SearchResultItem>> &&items) {
     results.reserve(items.size());
-    for (auto&& i : items) {
+    for (auto &&i : items) {
         results.push_back(std::move(i));
     }
 }
 
+void SearchResultBuilder::addItemTotalNumber(uint64_t tot) {
+    this->tot = tot;
+}
+
 Json::Value SearchResultBuilder::build() {
     Json::Value ret;
+    ret["总数"] = tot;
     ret["数量"] = Json::Value{};
     for (auto &&i : partsInfo) {
         ret["分词"].append(i.first);

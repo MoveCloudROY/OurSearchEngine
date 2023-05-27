@@ -11,8 +11,8 @@ namespace SG {
 using PartsInfo = std::map<std::string, uint64_t>;
 
 struct DivideResult {
-    PartsInfo words; //<word,frequency>
-    uint64_t  totalFreq;
+    PartsInfo   words; //<word,frequency>
+    uint64_t    totalFreq;
     std::string lastWord;
 };
 

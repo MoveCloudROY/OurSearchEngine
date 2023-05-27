@@ -9,5 +9,5 @@ int main() {
     SG::IndexBuilder obj{};
     obj.build();
     obj.dumpFst("../assets/library/fst.lib");
-    obj.dumpSkipList("../assets/library/output");
+    obj.dumpSkipList("../assets/library/skl");
 }

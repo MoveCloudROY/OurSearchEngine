@@ -24,13 +24,13 @@ private:
     tbb::queuing_mutex                                m_mutex;       // map 锁
     InvIndexList                                      InvertedIndex; // 倒排索引,<词语，<文档id，词频tf>>
 
-    void load_offsets();                                             //读取偏移量
-    void traverse_und_divide();                                      //遍历网页库并分词
+    void load_offsets();        //读取偏移量
+    void traverse_und_divide(); //遍历网页库并分词
 
 public:
     IndexBuilder() = default;
     ~IndexBuilder();
-    void dumpFst(const std::string &path);
+    void dumpFst(const std::filesystem::path &path);
     void dumpSkipList(const std::filesystem::path path); //将倒排索引输出到文件中进行查阅
     void build();                                        //构建倒排索引
 };

@@ -30,9 +30,9 @@ private:
     Queryer(const Queryer &);
     Queryer &operator=(const Queryer &);
 
-    void                                           load_offsets(); //读取偏移量
-    PartsInfo                                      createPartsInfo(const std::string &content);
-    std::vector<std::unique_ptr<SearchResultItem>> createResultList(const PartsInfo &partsInfo, uint64_t rkBegin, uint64_t rkEnd);
+    void                                                                load_offsets(); //读取偏移量
+    PartsInfo                                                           createPartsInfo(const std::string &content);
+    std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> createResultList(const PartsInfo &partsInfo, uint64_t rkBegin, uint64_t rkEnd);
 };
 
 } // namespace SG

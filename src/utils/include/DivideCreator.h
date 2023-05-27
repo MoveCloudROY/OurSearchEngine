@@ -21,7 +21,7 @@ private:
 public:
     Divider();
     ~Divider();
-    DivideResult divide(const std::string &sentence);
+    DivideResult             divide(const std::string &sentence);
     std::vector<std::string> divide_raw(const std::string &sentence);
 };
 } // namespace SG

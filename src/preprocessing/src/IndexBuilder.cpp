@@ -100,7 +100,7 @@ void IndexBuilder::traverse_und_divide() {
     spdlog::info("[IndexBuilder] Divide Documents Completely");
 }
 
-void IndexBuilder::dumpFst(const std::string &path) {
+void IndexBuilder::dumpFst(const std::filesystem::path &path) {
     // build FST
     spdlog::info("[IndexBuilder] Start to Output Fst.lib");
     std::vector<std::pair<std::string, uint64_t>> items;
