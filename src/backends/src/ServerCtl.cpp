@@ -21,8 +21,8 @@ void ServerCtl::search(const drogon::HttpRequestPtr &req, ResponseCallback &&cal
 
     Json::StreamWriterBuilder builder;
     builder.settings_["emitUTF8"] = true;
-    spdlog::info("\n{}", Json::writeString(builder, ret));
-    auto resp = drogon::HttpResponse::newHttpJsonResponse(ret);
+    // spdlog::info("\n{}", Json::writeString(builder, ret));
+    auto resp                     = drogon::HttpResponse::newHttpJsonResponse(ret);
 
 
     // std::ifstream           inputFile("../assets/test.json");

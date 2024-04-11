@@ -17,9 +17,9 @@ using SG::Core::SkipList;
 Json::Value Queryer::get(const std::string &content, uint64_t rkBegin, uint64_t rkEnd) {
     SG::SearchResultBuilder ret;
 
-    SG::PartsInfo partsInfo = createPartsInfo(content);
-    ret.addPartsInfo(partsInfo);
+    SG::PartsInfo partsInfo     = createPartsInfo(content);
     auto [resultList, totalCnt] = createResultList(partsInfo, rkBegin, rkEnd);
+    ret.addPartsInfo(std::move(partsInfo));
     ret.addItems(std::move(resultList));
     ret.addItemTotalNumber(totalCnt);
     return ret.build();
@@ -58,7 +58,7 @@ std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> Queryer::cre
         uint64_t      outputID = output / 400;
         std::ifstream inputFile("../assets/library/skl/" + std::to_string(outputID) + ".lib");
         if (!inputFile.is_open()) {
-            spdlog::error("[Queryer::creatResultList] Failed to open json file");
+            spdlog::error("[Queryer::creatResultList] Failed to open skl library file {}", std::to_string(outputID) + ".lib");
             inputFile.close();
             break;
         }
@@ -78,11 +78,11 @@ std::pair<std::vector<std::unique_ptr<SearchResultItem>>, uint64_t> Queryer::cre
 
     std::vector<std::vector<Doc>> combineResult = SkipList<Doc>::combine(sls);
 
-    std::cout << combineResult.size() << std::endl;
-    for (auto &i : combineResult) {
-        std::cout << i.size() << std::endl;
-    }
-    std::cout << idfs.size() << std::endl;
+    // std::cout << combineResult.size() << std::endl;
+    // for (auto &i : combineResult) {
+    //     std::cout << i.size() << std::endl;
+    // }
+    // std::cout << idfs.size() << std::endl;
 
     for (int i = 0; i < combineResult.size(); ++i) {
         double score = 0;

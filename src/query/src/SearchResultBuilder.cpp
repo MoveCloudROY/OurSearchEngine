@@ -14,6 +14,10 @@ void SearchResultBuilder::addPartsInfo(const std::map<std::string, uint64_t> &pa
     partsInfo = parts;
 }
 
+void SearchResultBuilder::addPartsInfo(std::map<std::string, uint64_t> &&parts) {
+    partsInfo = std::move(parts);
+}
+
 void SearchResultBuilder::addItem(SearchResultItem &&item) {
     results.push_back(std::make_unique<SearchResultItem>(item));
 }

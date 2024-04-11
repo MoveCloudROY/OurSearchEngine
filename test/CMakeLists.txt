@@ -32,6 +32,17 @@ target_link_libraries(test_queryer PUBLIC
     query
 )
 
+find_package(benchmark REQUIRED)
+
+add_executable(test_benchmark test_benchmark.cpp)
+target_link_libraries(test_benchmark PUBLIC
+    query
+)
+target_link_libraries(test_benchmark PUBLIC
+    benchmark::benchmark
+)
+
+
 if(UNIX AND CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_options(test_skiplist PRIVATE -fno-omit-frame-pointer)
     target_compile_options(test_skiplist PRIVATE -fsanitize=address)
