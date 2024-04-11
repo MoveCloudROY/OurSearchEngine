@@ -32,8 +32,12 @@ target_link_libraries(test_queryer PUBLIC
     query
 )
 
-find_package(benchmark REQUIRED)
 
+
+find_package(benchmark)
+message(STATUS "Find benchmark")
+message(STATUS "Enable benchmark test")
+if (${benchmark_FOUND}) 
 add_executable(test_benchmark test_benchmark.cpp)
 target_link_libraries(test_benchmark PUBLIC
     query
@@ -41,6 +45,8 @@ target_link_libraries(test_benchmark PUBLIC
 target_link_libraries(test_benchmark PUBLIC
     benchmark::benchmark
 )
+
+endif()
 
 
 if(UNIX AND CMAKE_BUILD_TYPE MATCHES "Debug")

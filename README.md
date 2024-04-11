@@ -7,7 +7,10 @@
 </div>
 
 ## Features
-- 
+- Infrastructure based on **inverted indexes**.
+- Parallelised Index Creation Process.
+- Using **SkipList and FST** to improve the query performance of the project.
+- Github CI support.
 
 
 ## Architecture
@@ -24,6 +27,7 @@ cmake --build build
 ```
 
 ### Use
+You could refer to the documents in `test` directory to use this library.
 
 
 
