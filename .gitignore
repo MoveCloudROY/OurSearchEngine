@@ -40,5 +40,7 @@
 /assets/seperate_models
 /assets/*.json
 !/assets/config.json
+/vtune/*
+/launch-vtune.sh
 /build
 /bin/*

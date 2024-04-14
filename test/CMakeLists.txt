@@ -35,16 +35,18 @@ target_link_libraries(test_queryer PUBLIC
 
 
 find_package(benchmark)
-message(STATUS "Find benchmark")
-message(STATUS "Enable benchmark test")
+
 if (${benchmark_FOUND}) 
-add_executable(test_benchmark test_benchmark.cpp)
-target_link_libraries(test_benchmark PUBLIC
-    query
-)
-target_link_libraries(test_benchmark PUBLIC
-    benchmark::benchmark
-)
+
+    message(STATUS "Find benchmark")
+    message(STATUS "Enable benchmark test")
+    add_executable(test_benchmark test_benchmark.cpp)
+    target_link_libraries(test_benchmark PUBLIC
+        query
+    )
+    target_link_libraries(test_benchmark PUBLIC
+        benchmark::benchmark
+    )
 
 endif()
 
